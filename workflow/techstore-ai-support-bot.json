@@ -1,0 +1,601 @@
+{
+  "name": "TechStore AI Support Bot",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "id": "d30f9bb6-ea51-45cf-bfba-727d15ffa0bc",
+      "name": "Telegram Trigger",
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.5,
+      "position": [
+        0,
+        544
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=User Question: {{ $('Telegram Trigger').item.json.message.text }}\n\nOrder Details from Database:\n{{ JSON.stringify($json) }}",
+        "options": {
+          "systemMessage": "You are an AI Customer Support Assistant for TechStore.\n\nYour job is to help customers clearly, professionally, accurately, and briefly.\n\n====================\nRESPONSE RULES\n====================\n\n- Answer only what the customer asks.\n- Keep responses concise: 2-5 sentences whenever possible.\n- Use bullet points when listing multiple items.\n- Do not give long explanations unless the customer explicitly asks for details.\n- Be friendly, professional, and helpful.\n- Do not repeat information unnecessarily.\n- Do not ask for information that the customer has already provided in the conversation.\n\n====================\nCONVERSATION MEMORY\n====================\n\n- Use the conversation history provided by the memory to understand previous messages.\n- Treat follow-up questions as part of the ongoing conversation.\n- Remember relevant information the customer has already provided during the conversation.\n- If the customer refers to something using words such as \"it\", \"the product\", \"my order\", or \"the previous problem\", use the conversation context to understand what they mean.\n- Do not ask the customer to repeat information that is already available in the conversation.\n\n====================\nCOMPANY INFORMATION\n====================\n\nCompany: TechStore\n\nProducts:\n- Wireless Mouse: $20\n- Mechanical Keyboard: $60\n- USB-C Hub: $35\n- Laptop Stand: $30\n\nShipping:\n- Delivery takes 2-5 business days.\n- Free shipping for orders above $100.\n\nReturns:\n- Products can be returned within 14 days.\n- The product must be unused and in its original condition.\n\nPayment:\n- Cash on delivery.\n- Credit/debit cards.\n\nCustomer Support:\n- Available from 9 AM to 6 PM, Sunday to Thursday.\n\n====================\nACCURACY & SAFETY\n====================\n\n- Use only the company information provided above when answering company-related questions.\n- Never invent products, prices, discounts, policies, delivery times, order information, or availability.\n- If the requested information is not available, clearly say that you do not have that information.\n- Do not assume that a product is available unless availability is explicitly provided.\n- If the customer needs information that is unavailable, offer human support.\n\n====================\nHUMAN SUPPORT\n====================\n\nEscalate to human support when:\n- The customer explicitly asks to speak with a human.\n- The customer has a complaint that requires manual intervention.\n- The customer asks about information that is not available in the company information.\n- The issue involves a specific order that cannot be handled using the available information.\n\nWhen escalation is needed, briefly explain that the request will need human assistance.\nDo not pretend that a human has already been contacted unless the workflow actually performs that action.\n\n====================\nIMPORTANT\n====================\n\nNever claim that you performed an action unless the workflow actually performed it.\n\nFor example:\n- Do not say \"Your ticket has been created\" unless the workflow actually created a ticket.\n- Do not say \"I contacted support\" unless the workflow actually contacted support.\n- Do not say \"Your order has been checked\" unless order information is actually available.\nWhen the customer confirms the order and provides address and payment details, call the Google Sheets tool and cleanly extract the product, phone, address, and payment_method values.\nYour priority is:\n1. Accuracy\n2. Helpful answers\n3. Concise communication\n4. Proper escalation when necessary                                              عندما يرسل العميل كلمة \"/start\" أو يلقي التحية (مثل: سلام، مرحباً، هالو)، قم بالرد عليه فوراً بالرسالة الترحيبية التالية بالنص:\n\n\"مرحباً بك في TechStore! 🚀\nمتجركم الأول لأحدث أجهزة ومستلزمات الكمبيوتر والملحقات الذكية.\n\nيمكننا مساعدتك في:\n- 🛒 استكشاف المنتجات والشراء.\n- 📦 متابعة واستعلام الأوردرات (أرسل رقم طلبك مثل ORD-1001).\n- 💬 تقديم الدعم الفني والإجابة على استفساراتك.\n\nكيف أستطيع مساعدتك اليوم؟\"                                                                                                                                          أنت مساعد مبيعات ذكي لمتجر TechStore.\nعندما يرغب العميل في إنشاء طلب أو شراء منتج، يجب عليك الجمع بين البيانات التالية:\n1. اسم المنتج (Product)\n2. رقم الهاتف (Phone)\n3. العنوان التفصيلي (Address)\n4. طريقة الدفع (Payment Method)\n\nقواعد العمل:\n- إذا قدم العميل بعض البيانات ونقصت بيانات أخرى، اطلب منه البيانات الناقصة بكل لطف ولا تقم باستدعاء أداة تسجيل الطلب حتى تكتمل جميع البيانات 100%.\n- بمجرد اكتمال كافة البيانات الأربعة، قم بطلب استخدام أداة تسجيل الطلب (Google Sheets Tool) واستخراج القيم المحددة بها.\n- بعد استدعاء الأداة وتسجيل الطلب بنجاح، قم بإرسال رسالة تأكيد دافئة للعميل تحتوي على ملخص الطلب ورقم التتبع الخاص به وتخبره بأنه سيتم التواصل معه قريبًا للتوصيل."
+        }
+      },
+      "id": "777d9828-63fe-43ae-966f-8262b4bd10bd",
+      "name": "AI Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        800,
+        688
+      ]
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "contextWindowLength": 10
+      },
+      "id": "8cf71fff-e431-4ad2-a79b-1ae1a44d8d7d",
+      "name": "Simple Memory",
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.4,
+      "position": [
+        808,
+        920
+      ]
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "={{ $json.output }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "id": "0ee2382b-1f67-46a8-b3e2-d098e6d39e45",
+      "name": "Send a text message",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1152,
+        688
+      ]
+    },
+    {
+      "parameters": {
+        "inputText": "={{ $json.message.text }}",
+        "categories": {
+          "categories": [
+            {
+              "category": "Product Inquiry",
+              "description": "Questions about products, prices, features, or availability"
+            },
+            {
+              "category": "FAQ",
+              "description": "General questions about shipping, payment, returns, working hours, or company policies"
+            },
+            {
+              "category": "Complaint",
+              "description": "Customer complaints, problems, damaged products, or bad experiences"
+            },
+            {
+              "category": "Order Support",
+              "description": "Questions about an existing order, delivery status, cancellation, or order issues"
+            },
+            {
+              "category": "Human Support",
+              "description": "Customer explicitly asks to speak with a human or customer service agent"
+            },
+            {
+              "category": "Other",
+              "description": "Messages that don't fit any of the categories above"
+            },
+            {
+              "category": "Greeting",
+              "description": "Greetings, hellos, hi, welcome messages, or general small talk with no specific question"
+            },
+            {
+              "category": "Create Order",
+              "description": "The customer explicitly wants to buy a product, place a new order, or make a purchase The user says start, /start, hello, hi, welcome, or greets the store.."
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.textClassifier",
+      "typeVersion": 1.1,
+      "position": [
+        224,
+        544
+      ],
+      "id": "bcfb75b1-b12a-48c3-8c6a-a1bbb8ee4734",
+      "name": "Text Classifier"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "تم استلام طلبك للتحدث مع أحد أفراد خدمة العملاء. 👩‍💼  سيتم تحويل محادثتك إلى موظف خدمة العملاء، وسيتواصل معك في أقرب وقت.  شكرًا لتواصلك معنا ❤️",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        576,
+        160
+      ],
+      "id": "e5a25db5-2afc-4833-a783-ab639820dcdf",
+      "name": "Send a text message1"
+    },
+    {
+      "parameters": {
+        "chatId": "YOUR_TELEGRAM_CHAT_ID",
+        "text": "=🚨 **طلب موظف بشري**\n\n👤 **العميل:** {{ $('Telegram Trigger').item.json.message.from.first_name }} {{ $('Telegram Trigger').item.json.message.from.last_name || '' }}\n🆔 **معرف الحساب:** @{{ $('Telegram Trigger').item.json.message.from.username || 'بدون يوزر' }} (ID: {{ $('Telegram Trigger').item.json.message.from.id }})\n\n📌 **رسالة العميل:**\n\"{{ $('Telegram Trigger').item.json.message.text }}\"\n\n🔔 **يرجى التواصل مع العميل في أقرب وقت.**\n",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        576,
+        352
+      ],
+      "id": "f86c477e-c4e0-4a74-9cef-1de65047f466",
+      "name": "Send a text message2"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "YOUR_GOOGLE_SHEET_ID",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Sheet1",
+          "mode": "name",
+          "cachedResultName": "Sheet1"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Ticket ID": "={{ $('Telegram Trigger').item.json.message.message_id }}",
+            " Customer Name": "={{ $('Telegram Trigger').item.json.message.from.first_name }}",
+            " Username ": "={{ $('Telegram Trigger').item.json.message.from.username }}",
+            "Message": "={{ $('Telegram Trigger').item.json.message.text }}",
+            "Category": "Complaint",
+            "Status": "Open",
+            "Created At": "={{ $now }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Ticket ID",
+              "displayName": "Ticket ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": " Customer Name",
+              "displayName": " Customer Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": " Username ",
+              "displayName": " Username ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Message",
+              "displayName": "Message",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Category",
+              "displayName": "Category",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "AI Response",
+              "displayName": "AI Response",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Created At",
+              "displayName": "Created At",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        576,
+        832
+      ],
+      "id": "c5e68510-bcbb-49fc-a029-20311bf71cfd",
+      "name": "Append row in sheet"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "YOUR_GOOGLE_SHEET_ID",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "TechStore_Orders",
+          "mode": "name",
+          "cachedResultName": "TechStore_Orders"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "Order ID",
+              "lookupValue": "={{ $('Telegram Trigger').item.json.message.text.match(/ORD-\\d+/)?.[0] }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        576,
+        544
+      ],
+      "id": "264ce88e-f7ba-4a44-b17f-c16078758c89",
+      "name": "Get row(s) in sheet"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "YOUR_GOOGLE_SHEET_ID",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Sheet1",
+          "mode": "name",
+          "cachedResultName": "Sheet1"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Order ID": "=ORD-{{ Math.floor(1000 + Math.random() * 9000) }}",
+            "Customer Name": "={{ $('Telegram Trigger').item.json.message.from.first_name }}",
+            "Product": "={{ $fromAI('product', 'اسم المنتج المطلوب فقط') }}",
+            "Phone": "={{ $fromAI('phone', 'رقم هاتف العميل') }}",
+            "Address": "={{ $fromAI('address', 'عنوان التوصيل التفصيلي') }}",
+            "Payment Method": "={{ $fromAI('payment_method', 'طريقة الدفع المحددة') }}",
+            "Status": "Pending"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Order ID",
+              "displayName": "Order ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Customer Name",
+              "displayName": "Customer Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Product",
+              "displayName": "Product",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Phone",
+              "displayName": "Phone",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Address",
+              "displayName": "Address",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Payment Method",
+              "displayName": "Payment Method",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheetsTool",
+      "typeVersion": 4.7,
+      "position": [
+        936,
+        920
+      ],
+      "id": "2f70cbeb-15f8-4c3c-b95f-2791feac9b54",
+      "name": "Append row in sheet in Google Sheets"
+    },
+    {
+      "parameters": {
+        "model": "llama-3.3-70b-versatile",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        296,
+        968
+      ],
+      "id": "2b9236bd-8f74-468d-960c-36545905547f",
+      "name": "Groq Chat Model"
+    }
+  ],
+  "connections": {
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "Text Classifier",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Text Classifier": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Get row(s) in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send a text message1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Send a text message2",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a text message1": {
+      "main": [
+        []
+      ]
+    },
+    "Send a text message": {
+      "main": [
+        []
+      ]
+    },
+    "Append row in sheet": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append row in sheet in Google Sheets": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "Text Classifier",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "staticData": null,
+  "triggerCount": 1,
+  "active": false
+}
